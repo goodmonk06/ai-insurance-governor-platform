@@ -1,522 +1,498 @@
 # AI Insurance Governor Platform
 
-介護・医療系保険リスク管理SaaSプラットフォーム
+**Phase 2** - 介護・医療系保険リスク管理SaaSプラットフォーム
 
-## 概要
+Production-ready insurance risk management SaaS platform for healthcare and nursing care facilities with complete end-to-end functionality.
+
+## Overview
 
 このプラットフォームは、介護施設や医療機関向けの保険リスク管理を支援するSaaSソリューションです。AIベースのリスクシミュレーションエンジンと統合し、包括的なリスク評価、見積もり管理、契約管理機能を提供します。
 
-## アーキテクチャ
+### Phase 2 Highlights
 
-### システム構成
+- ✅ **Complete Vertical Slice**: InsuredEntity CRUD fully functional end-to-end
+- ✅ **Authentication Flow**: Login page, JWT handling, auth guards
+- ✅ **Production Docker Setup**: Multi-stage builds, health checks, docker-compose
+- ✅ **Error Handling**: Global exception filters and response transformation
+- ✅ **Unit Tests**: Core domain logic tested with Vitest and Jest
+- ✅ **Standardized Scripts**: Consistent dev/build/test commands across all packages
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     Turborepo Monorepo                      │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
-│  │   apps/web   │  │   apps/api   │  │ apps/worker  │      │
-│  │              │  │              │  │              │      │
-│  │  Next.js 15  │  │  NestJS 10   │  │   BullMQ     │      │
-│  │  React 19    │  │  Prisma ORM  │  │   Workers    │      │
-│  │  Tailwind    │  │  PostgreSQL  │  │              │      │
-│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘      │
-│         │                 │                 │              │
-│         └─────────────────┴─────────────────┘              │
-│                           │                                │
-│                  ┌────────▼────────┐                        │
-│                  │ packages/shared │                        │
-│                  │                 │                        │
-│                  │  DTOs, Types,   │                        │
-│                  │  Utilities      │                        │
-│                  └─────────────────┘                        │
-└─────────────────────────────────────────────────────────────┘
+## Tech Stack
 
-┌─────────────────────────────────────────────────────────────┐
-│                    External Services                        │
-├─────────────────────────────────────────────────────────────┤
-│  • insurance-risk-simulator-core (外部AIリスクエンジン)        │
-│  • PostgreSQL Database                                      │
-│  • Redis (BullMQ用)                                          │
-└─────────────────────────────────────────────────────────────┘
-```
+### Frontend
+- **Next.js 15** - App Router, Server Components
+- **React 19** - Modern React with hooks
+- **TypeScript** - Full type safety
+- **Tailwind CSS** - Utility-first styling
+- **Axios** - HTTP client with interceptors
 
-### 技術スタック
+### Backend
+- **NestJS 10** - Enterprise Node.js framework
+- **Prisma ORM** - Type-safe database access
+- **PostgreSQL** - Main database
+- **Redis** - Job queue and caching
+- **BullMQ** - Background job processing
 
-#### フロントエンド (apps/web)
-- **Next.js 15** - App Router使用
-- **React 19** - UIフレームワーク
-- **TypeScript** - 型安全性
-- **Tailwind CSS** - スタイリング
-- **Lucide React** - アイコン
-- **Recharts** - データ可視化
+### Infrastructure
+- **Docker** - Containerization
+- **Turborepo** - Monorepo build system
+- **pnpm** - Fast package manager
 
-#### バックエンド (apps/api)
-- **NestJS 10** - エンタープライズNode.jsフレームワーク
-- **Prisma ORM** - データベースORM
-- **PostgreSQL** - メインデータベース
-- **Passport JWT** - 認証・認可
-- **BullMQ** - ジョブキュー統合
-
-#### ワーカー (apps/worker)
-- **BullMQ** - バックグラウンドジョブ処理
-- **Prisma Client** - データベースアクセス
-
-#### 共通パッケージ (packages/shared)
-- **Zod** - スキーマバリデーション
-- **Axios** - HTTP クライアント
-- **TypeScript** - 型定義
-
-### データモデル
+## Domain Model
 
 ```
-Tenant (テナント: 代理店・組織)
-  ↓
+Tenant (保険代理店/組織)
   ├── User (ユーザー: admin/underwriter/sales)
   ├── InsuredEntity (被保険者: 施設/法人/個人)
-  │     ├── Policy (保険契約)
   │     ├── RiskAssessment (リスク評価)
+  │     ├── Policy (保険契約)
   │     └── QuoteRequest (見積もりリクエスト)
   └── AuditLog (監査ログ)
 ```
 
-### 主要機能
+### Key Entities
 
-1. **マルチテナント管理**
-   - テナント分離によるデータセキュリティ
-   - RBAC（ロールベースアクセス制御）
+- **Tenant**: Multi-tenant isolation, agency or corporate type
+- **User**: Role-based access control (RBAC)
+- **InsuredEntity**: Facilities, corporations, or individuals with metadata
+- **RiskAssessment**: AI-powered risk scoring with recommendations
+- **Policy**: Complete policy lifecycle management
+- **QuoteRequest**: Quote workflow with approval process
 
-2. **被保険者管理**
-   - 施設、法人、個人の一元管理
-   - メタデータによる柔軟な属性管理
+## Getting Started
 
-3. **リスク評価**
-   - AIシミュレーターとの統合
-   - 複数シナリオでの評価
-   - リスクランク自動判定（低/中/高/危険）
+### Requirements
 
-4. **見積もり管理**
-   - オンライン見積もりリクエスト
-   - 査定ワークフロー
-   - 自動有効期限管理
+- **Node.js**: >= 20.0.0
+- **pnpm**: >= 9.0.0
+- **Docker**: >= 24.0 (optional, recommended)
+- **PostgreSQL**: >= 14 (or via Docker)
+- **Redis**: >= 6 (or via Docker)
 
-5. **契約管理**
-   - 契約ライフサイクル管理
-   - 更新期限通知
-   - 契約書類管理
+### Quick Start (Docker - Recommended)
 
-6. **バックグラウンドジョブ**
-   - 大量リスク再計算
-   - 契約更新リマインダー
-   - 定期レポート生成
-
-## セットアップ
-
-### 前提条件
-
-- Node.js 20.x 以上
-- pnpm 9.x 以上
-- PostgreSQL 14 以上
-- Redis 6 以上
-
-### インストール
-
-1. **リポジトリのクローン**
+1. **Clone and setup environment**
 ```bash
 git clone <repository-url>
 cd ai-insurance-governor-platform
-```
 
-2. **依存関係のインストール**
-```bash
-pnpm install
-```
-
-3. **環境変数の設定**
-
-apps/api/.env:
-```bash
+# Copy environment files
+cp .env.example .env
 cp apps/api/.env.example apps/api/.env
-```
-
-apps/api/.envを編集:
-```env
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/insurance_platform?schema=public"
-REDIS_HOST="localhost"
-REDIS_PORT=6379
-JWT_SECRET="your-secret-key-change-in-production"
-JWT_EXPIRES_IN="7d"
-PORT=3000
-RISK_SIMULATOR_URL="http://localhost:3001/api"
-RISK_SIMULATOR_USE_MOCK=true
-```
-
-apps/worker/.env:
-```bash
-cp apps/worker/.env.example apps/worker/.env
-# 同様の環境変数を設定
-```
-
-apps/web/.env.local:
-```bash
 cp apps/web/.env.example apps/web/.env.local
-NEXT_PUBLIC_API_URL=http://localhost:3000/api
 ```
 
-4. **データベースのセットアップ**
-
-PostgreSQLデータベースを作成:
+2. **Start services with Docker**
 ```bash
-createdb insurance_platform
-```
+# Start database services only
+docker compose up -d postgres redis
 
-Prismaスキーマを適用:
-```bash
+# Install dependencies
+pnpm install
+
+# Setup database
 pnpm db:push
-```
-
-5. **シードデータの投入**
-```bash
 pnpm db:seed
-```
 
-これにより以下のサンプルデータが作成されます:
-- テナント: 東京介護保険代理店、全国医療保険サービス
-- ユーザー: admin@example.com, underwriter@example.com, sales@example.com (全てパスワード: password123)
-- 被保険者: さくら介護ホーム、ひまわりデイサービスセンター、あおぞら訪問看護ステーション
-- リスク評価: 各施設の複数シナリオ評価
-- 保険契約: アクティブ契約2件、下書き1件
-
-6. **開発サーバーの起動**
-
-全サービスを一括起動:
-```bash
+# Start development servers
 pnpm dev
 ```
 
-個別起動:
-```bash
-# API (Port 3000)
-cd apps/api && pnpm dev
-
-# Web (Port 3001)
-cd apps/web && pnpm dev
-
-# Worker
-cd apps/worker && pnpm dev
-```
-
-7. **アクセス**
+**Access the application:**
 - Web Dashboard: http://localhost:3001
 - API: http://localhost:3000/api
-- Prisma Studio: `pnpm db:studio`
+- Health Check: http://localhost:3000/api/health
 
-### ログイン情報
+### Production Deployment
 
-- 管理者: `admin@example.com` / `password123`
-- 査定担当: `underwriter@example.com` / `password123`
-- 営業担当: `sales@example.com` / `password123`
-
-## 典型的なユースケース
-
-### ユースケース: 新規施設のリスク診断 → 見積もり → 契約
-
-#### 1. 新規施設の登録
-
-**操作**: 被保険者ページで「新規登録」をクリック
-
-```json
-{
-  "type": "facility",
-  "name": "すみれ介護センター",
-  "taxId": "1234567890",
-  "address": "東京都新宿区西新宿1-1-1",
-  "phoneNumber": "03-1234-5678",
-  "email": "info@sumire-care.jp",
-  "metadata": {
-    "facilityType": "nursing_home",
-    "bedCount": 60,
-    "employeeCount": 30,
-    "yearsInOperation": 3,
-    "hasFireSafety": true,
-    "hasEmergencyPlan": false,
-    "annualRevenue": 180000000
-  }
-}
-```
-
-API呼び出し:
 ```bash
-POST /api/insured
+# Build and run everything with Docker
+docker compose up -d
+
+# View logs
+docker compose logs -f api
+docker compose logs -f web
+
+# Stop services
+docker compose down
 ```
 
-#### 2. リスク評価の実施
+### Manual Setup (Without Docker)
 
-**操作**: リスク評価ページで施設を選択し、複数シナリオで評価実行
+```bash
+# Install dependencies
+pnpm install
 
-```json
-{
-  "insuredEntityId": "<施設ID>",
+# Setup PostgreSQL and Redis manually
+# Update .env files with connection strings
+
+# Generate Prisma client
+pnpm db:generate
+
+# Push schema to database
+pnpm db:push
+
+# Seed database
+pnpm db:seed
+
+# Start development servers
+pnpm dev
+```
+
+## Scripts Reference
+
+### Root Level
+```bash
+pnpm dev          # Start all services in dev mode
+pnpm build        # Build all packages
+pnpm test         # Run all tests
+pnpm lint         # Lint all packages
+pnpm clean        # Clean build artifacts
+
+pnpm db:generate  # Generate Prisma Client
+pnpm db:push      # Push schema to database
+pnpm db:seed      # Seed database with sample data
+pnpm db:studio    # Open Prisma Studio
+```
+
+### Package-Specific
+```bash
+# API
+cd apps/api
+pnpm dev          # Start API server (port 3000)
+pnpm build        # Build API
+pnpm test         # Run API tests
+pnpm test:watch   # Run tests in watch mode
+
+# Web
+cd apps/web
+pnpm dev          # Start web server (port 3001)
+pnpm build        # Build for production
+pnpm start        # Start production server
+
+# Shared
+cd packages/shared
+pnpm build        # Build shared package
+pnpm test         # Run unit tests
+pnpm test:watch   # Run tests in watch mode
+```
+
+## Complete Vertical Slice Example
+
+### End-to-End Flow: InsuredEntity Management
+
+This platform includes a fully functional vertical slice demonstrating complete CRUD operations for insured entities (facilities, corporations, individuals).
+
+**1. Authentication**
+```
+Navigate to: http://localhost:3001/login
+Demo credentials:
+- Admin: admin@example.com / password123
+- Underwriter: underwriter@example.com / password123
+- Sales: sales@example.com / password123
+```
+
+**2. Create Insured Entity**
+```
+Dashboard → 被保険者 → 新規登録
+
+Fill in the form:
+- Type: 施設 (Facility)
+- Name: すみれ介護センター
+- Address: 東京都新宿区西新宿1-1-1
+- Facility Details:
+  - Facility Type: nursing_home
+  - Bed Count: 60
+  - Employee Count: 30
+  - Years in Operation: 3
+  - Safety measures: Check applicable boxes
+
+API: POST /api/insured
+```
+
+**3. View Insured Entities**
+```
+Dashboard → 被保険者
+
+View list with:
+- Risk scores and rankings
+- Active policies count
+- Contact information
+
+API: GET /api/insured/tenant/:tenantId
+```
+
+**4. View Entity Details**
+```
+Click on any entity card
+
+See comprehensive information:
+- Basic info (address, contact)
+- Facility details (beds, employees, revenue)
+- Risk assessments with recommendations
+- Active policies
+
+API: GET /api/insured/:id
+```
+
+**5. Risk Assessment**
+```
+API: POST /api/risk/assess
+Body: {
+  "insuredEntityId": "<id>",
   "scenarioType": "nursing_home_fire",
-  "parameters": {
-    "facilityType": "nursing_home",
-    "bedCount": 60,
-    "employeeCount": 30,
-    "yearsInOperation": 3,
-    "hasFireSafety": true,
-    "hasEmergencyPlan": false
-  }
+  "parameters": { ... }
 }
+
+Response: Risk score, rank, recommendations
 ```
 
-API呼び出し:
-```bash
-POST /api/risk/assess
-```
-
-**評価結果**:
-- スコア: 52.5
-- ランク: 中リスク
-- 期待損失額: ¥9,450,000
-- 推奨事項:
-  - 緊急時対応マニュアルの整備が必要です
-  - 定期的な避難訓練の実施を推奨します
-  - 運営実績が浅いため、経験豊富な管理者の配置を推奨します
-
-#### 3. 見積もりリクエスト作成
-
-**操作**: 見積もりページで「新規見積もり作成」
-
-```json
-{
-  "insuredEntityId": "<施設ID>",
-  "answersJson": {
-    "facilityType": "nursing_home",
-    "bedCount": 60,
-    "employeeCount": 30,
-    "requestedCoverage": {
-      "火災保険": "3億円",
-      "賠償責任": "2億円",
-      "施設管理者賠償": "1億円"
-    },
-    "specialRequirements": "感染症対策特約を希望"
-  }
-}
-```
-
-API呼び出し:
-```bash
-POST /api/quotes
-```
-
-#### 4. 査定・見積もり回答
-
-**操作**: 査定担当者が見積もりを査定
-
-```json
-{
-  "status": "quoted",
-  "quotedPremium": 850000,
-  "quotedCoverage": {
-    "火災保険": "最大3億円",
-    "賠償責任": "最大2億円",
-    "施設管理者賠償": "最大1億円",
-    "感染症対策特約": "最大5000万円"
-  }
-}
-```
-
-API呼び出し:
-```bash
-PUT /api/quotes/<見積もりID>
-```
-
-#### 5. 契約の作成・有効化
-
-**操作**: 契約管理ページで見積もりから契約を作成
-
-```json
-{
-  "insuredEntityId": "<施設ID>",
-  "policyNumber": "POL-2024-004",
-  "productName": "介護施設総合保険プラン スタンダード",
-  "premium": 850000,
-  "coverageJson": {
-    "火災保険": "最大3億円",
-    "賠償責任": "最大2億円",
-    "施設管理者賠償": "最大1億円",
-    "感染症対策特約": "最大5000万円"
-  },
-  "startDate": "2024-12-01T00:00:00Z",
-  "endDate": "2025-11-30T23:59:59Z"
-}
-```
-
-API呼び出し:
-```bash
-POST /api/policies
-PUT /api/policies/<契約ID>/activate
-```
-
-#### 6. 継続的なリスク監視
-
-**バックグラウンドジョブ**: ワーカーが定期的に実行
-
-- 30日以内に更新期限が来る契約をチェック
-- リマインダー通知を送信
-- リスク再評価をスケジュール
+### API Testing
 
 ```bash
-# 手動での一括リスク再評価
-POST /api/risk/tenant/<テナントID>/bulk-recalculate
+# Health check
+curl http://localhost:3000/api/health
+
+# Login
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@example.com","password":"password123"}'
+
+# Get insured entities (with token)
+curl http://localhost:3000/api/insured/tenant/tenant-1 \
+  -H "Authorization: Bearer <your-token>"
+
+# Create insured entity
+curl -X POST http://localhost:3000/api/insured \
+  -H "Authorization: Bearer <your-token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "facility",
+    "name": "Test Facility",
+    "address": "Tokyo",
+    "metadata": {
+      "facilityType": "nursing_home",
+      "bedCount": 50
+    }
+  }'
 ```
 
-## プロジェクト構造
+## Sample Data
+
+The seed script creates:
+
+**Tenants**
+- 東京介護保険代理店 (Tokyo Insurance Agency)
+- 全国医療保険サービス (National Medical Insurance Service)
+
+**Users**
+- Admin: `admin@example.com` (full access)
+- Underwriter: `underwriter@example.com` (quote assessment)
+- Sales: `sales@example.com` (client management)
+
+**Insured Entities**
+- さくら介護ホーム (Sakura Nursing Home) - 50 beds, 25 employees
+- ひまわりデイサービスセンター (Himawari Day Service) - 30 beds, 15 employees
+- あおぞら訪問看護ステーション (Aozora Visiting Nurse) - 12 employees
+
+**Risk Assessments**
+- Multiple scenarios (fire, infection, malpractice)
+- Risk rankings (low/medium/high/critical)
+- Detailed recommendations
+
+**Policies**
+- 2 active policies
+- 1 draft policy
+- Comprehensive coverage details
+
+## Testing
+
+```bash
+# Run all tests
+pnpm test
+
+# Run tests in watch mode
+pnpm --filter @insurance-platform/shared test:watch
+pnpm --filter @insurance-platform/api test:watch
+
+# Run with coverage
+cd apps/api && pnpm test:cov
+```
+
+## Architecture
+
+### System Overview
+
+```
+┌─────────────────────────────────────────────────────┐
+│                   Turborepo                         │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│  ┌────────────┐  ┌────────────┐  ┌──────────────┐  │
+│  │ apps/web   │  │ apps/api   │  │ apps/worker  │  │
+│  │ Next.js    │→→│ NestJS     │←→│ BullMQ       │  │
+│  │ Port 3001  │  │ Port 3000  │  │ Background   │  │
+│  └────────────┘  └──────┬─────┘  └──────────────┘  │
+│                         │                          │
+│              ┌──────────▼──────────┐                │
+│              │ packages/shared     │                │
+│              │ DTOs, Types, Utils  │                │
+│              └─────────────────────┘                │
+└─────────────────────────────────────────────────────┘
+                         │
+         ┌───────────────┼───────────────┐
+         │               │               │
+    PostgreSQL         Redis    Risk Simulator
+    (Prisma ORM)    (BullMQ)      (Mock)
+```
+
+### Security Features
+
+- **JWT Authentication**: Secure token-based auth
+- **RBAC**: Role-based access control
+- **Tenant Isolation**: Multi-tenant data segregation
+- **Input Validation**: Zod schemas for all inputs
+- **Error Handling**: Centralized exception handling
+- **Audit Logging**: Track all critical operations
+
+### Performance Features
+
+- **Background Jobs**: Async processing with BullMQ
+- **Database Indexing**: Optimized queries
+- **Response Caching**: Redis integration
+- **Connection Pooling**: Prisma connection management
+
+## Project Structure
 
 ```
 ai-insurance-governor-platform/
 ├── apps/
-│   ├── api/                    # NestJS APIサーバー
+│   ├── api/                    # NestJS API server
+│   │   ├── src/
+│   │   │   ├── auth/          # Authentication
+│   │   │   ├── common/        # Guards, filters, interceptors
+│   │   │   ├── insured/       # Insured entity module
+│   │   │   ├── policies/      # Policy management
+│   │   │   ├── quotes/        # Quote workflow
+│   │   │   ├── risk/          # Risk assessment
+│   │   │   ├── tenants/       # Tenant management
+│   │   │   └── users/         # User management
 │   │   ├── prisma/
-│   │   │   ├── schema.prisma   # データベーススキーマ
-│   │   │   └── seed.ts         # シードデータ
-│   │   └── src/
-│   │       ├── auth/           # 認証モジュール
-│   │       ├── common/         # 共通ガード・デコレーター
-│   │       ├── insured/        # 被保険者モジュール
-│   │       ├── policies/       # 契約モジュール
-│   │       ├── quotes/         # 見積もりモジュール
-│   │       ├── risk/           # リスク評価モジュール
-│   │       ├── tenants/        # テナントモジュール
-│   │       ├── users/          # ユーザーモジュール
-│   │       └── prisma/         # Prismaサービス
+│   │   │   ├── schema.prisma  # Database schema
+│   │   │   └── seed.ts        # Seed data
+│   │   ├── Dockerfile         # Production build
+│   │   └── jest.config.js     # Test configuration
 │   │
-│   ├── web/                    # Next.js Webアプリ
-│   │   └── src/
-│   │       ├── app/
-│   │       │   └── (dashboard)/
-│   │       │       ├── dashboard/  # ダッシュボード
-│   │       │       ├── insured/    # 被保険者管理
-│   │       │       ├── quotes/     # 見積もり管理
-│   │       │       ├── policies/   # 契約管理
-│   │       │       └── risk/       # リスク評価
-│   │       ├── components/     # UIコンポーネント
-│   │       └── lib/            # ユーティリティ
+│   ├── web/                   # Next.js frontend
+│   │   ├── src/
+│   │   │   ├── app/
+│   │   │   │   ├── (dashboard)/  # Protected routes
+│   │   │   │   └── login/        # Auth page
+│   │   │   ├── components/    # UI components
+│   │   │   ├── contexts/      # React contexts
+│   │   │   └── lib/           # Utilities
+│   │   └── Dockerfile         # Production build
 │   │
-│   └── worker/                 # BullMQワーカー
+│   └── worker/                # Background jobs
 │       └── src/
-│           └── workers/
-│               ├── risk-calculation.worker.ts
-│               └── policy-reminder.worker.ts
+│           └── workers/       # Job processors
 │
 ├── packages/
-│   └── shared/                 # 共通パッケージ
+│   └── shared/                # Shared package
 │       └── src/
-│           ├── types/          # 型定義
-│           ├── dtos/           # DTOスキーマ
-│           └── clients/        # APIクライアント
-│               └── risk-simulator.client.ts
+│           ├── clients/       # API clients
+│           ├── dtos/          # Data transfer objects
+│           └── types/         # Type definitions
 │
-├── package.json                # ルートpackage.json
-├── pnpm-workspace.yaml         # pnpmワークスペース設定
-├── turbo.json                  # Turboビルド設定
-└── README.md                   # このファイル
+├── docker-compose.yml         # Full stack deployment
+├── turbo.json                 # Build configuration
+└── pnpm-workspace.yaml        # Workspace config
 ```
 
-## 開発ガイド
+## Environment Variables
 
-### ビルド
-
-```bash
-# 全アプリケーションをビルド
-pnpm build
-
-# 個別ビルド
-pnpm --filter @insurance-platform/api build
-pnpm --filter @insurance-platform/web build
-pnpm --filter @insurance-platform/worker build
+### API (.env)
+```env
+DATABASE_URL="postgresql://..."
+REDIS_HOST="localhost"
+REDIS_PORT=6379
+JWT_SECRET="your-secret-key"
+JWT_EXPIRES_IN="7d"
+PORT=3000
+NODE_ENV="development"
+RISK_SIMULATOR_USE_MOCK="true"
 ```
 
-### テスト
+### Web (.env.local)
+```env
+NEXT_PUBLIC_API_URL="http://localhost:3000/api"
+```
+
+## Future Extensions
+
+### Planned Features
+
+1. **Advanced Analytics**
+   - Portfolio risk heatmaps
+   - Trend analysis and forecasting
+   - Custom report generation
+
+2. **Integration Enhancements**
+   - Real external risk simulator API
+   - Payment gateway integration
+   - Email/SMS notifications
+   - Document management system
+
+3. **Mobile App**
+   - React Native mobile client
+   - Push notifications
+   - Offline capability
+
+4. **Advanced Workflows**
+   - Approval workflows for quotes
+   - Automated underwriting rules
+   - Policy renewal automation
+   - Claims management
+
+5. **Compliance & Reporting**
+   - Regulatory compliance checks
+   - Automated reporting
+   - Data export functionality
+
+6. **AI Enhancements**
+   - Predictive risk modeling
+   - Anomaly detection
+   - Recommendation engine
+
+## Contributing
 
 ```bash
-# テスト実行
+# Create feature branch
+git checkout -b feature/your-feature
+
+# Make changes and test
 pnpm test
-```
-
-### Prismaコマンド
-
-```bash
-# スキーマ変更後にマイグレーション
-pnpm db:push
-
-# Prisma Clientの再生成
-pnpm db:generate
-
-# Prisma Studio起動
-pnpm db:studio
-
-# シードデータ再投入
-pnpm db:seed
-```
-
-### コード品質
-
-```bash
-# Lint
 pnpm lint
 
-# フォーマット
-pnpm format
+# Commit and push
+git commit -m "feat: your feature"
+git push origin feature/your-feature
 ```
 
-## API エンドポイント
-
-### 認証
-- `POST /api/auth/register` - ユーザー登録
-- `POST /api/auth/login` - ログイン
-
-### テナント
-- `GET /api/tenants` - テナント一覧
-- `GET /api/tenants/:id` - テナント詳細
-- `POST /api/tenants` - テナント作成
-- `PUT /api/tenants/:id` - テナント更新
-
-### 被保険者
-- `GET /api/insured/tenant/:tenantId` - テナントの被保険者一覧
-- `GET /api/insured/:id` - 被保険者詳細
-- `POST /api/insured` - 被保険者作成
-- `PUT /api/insured/:id` - 被保険者更新
-- `DELETE /api/insured/:id` - 被保険者削除
-
-### 契約
-- `GET /api/policies/tenant/:tenantId` - テナントの契約一覧
-- `GET /api/policies/tenant/:tenantId/expiring` - 更新期限が近い契約
-- `GET /api/policies/:id` - 契約詳細
-- `POST /api/policies` - 契約作成
-- `PUT /api/policies/:id` - 契約更新
-- `PUT /api/policies/:id/activate` - 契約有効化
-- `PUT /api/policies/:id/cancel` - 契約解約
-
-### 見積もり
-- `GET /api/quotes/tenant/:tenantId` - テナントの見積もり一覧
-- `GET /api/quotes/:id` - 見積もり詳細
-- `POST /api/quotes` - 見積もり作成
-- `PUT /api/quotes/:id` - 見積もり更新
-- `DELETE /api/quotes/:id` - 見積もり削除
-
-### リスク評価
-- `POST /api/risk/assess` - リスク評価実行
-- `GET /api/risk/insured/:insuredEntityId` - 被保険者のリスク評価履歴
-- `GET /api/risk/insured/:insuredEntityId/latest` - 最新のリスク評価
-- `POST /api/risk/tenant/:tenantId/bulk-recalculate` - 一括リスク再評価
-- `GET /api/risk/tenant/:tenantId/portfolio-summary` - ポートフォリオリスク概要
-
-## ライセンス
+## License
 
 MIT
 
-## サポート
+## Support
 
-問題や質問がある場合は、GitHubのIssuesで報告してください。
+For issues and questions:
+- GitHub Issues: Create an issue in this repository
+- Documentation: See inline code comments and type definitions
+
+---
+
+**Phase 2 Status**: ✅ Complete
+- Vertical slice fully functional
+- Production-ready with Docker
+- Comprehensive testing
+- Standardized development experience

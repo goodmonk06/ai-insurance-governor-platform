@@ -20,13 +20,20 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// レスポンスインターセプター: エラーハンドリング
+// レスポンスインターセプター: データの展開とエラーハンドリング
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // APIレスポンスが { data, statusCode, timestamp } の形式でラップされている場合、dataを展開
+    if (response.data && 'data' in response.data && 'timestamp' in response.data) {
+      return { ...response, data: response.data.data };
+    }
+    return response;
+  },
   (error) => {
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
         localStorage.removeItem('token');
+        localStorage.removeItem('user');
         window.location.href = '/login';
       }
     }

@@ -51,10 +51,16 @@ export function Sidebar() {
         })}
       </nav>
       <div className="border-t p-4">
+        <div className="mb-2 px-3 text-xs text-muted-foreground">
+          {typeof window !== 'undefined' && localStorage.getItem('user') && (
+            JSON.parse(localStorage.getItem('user') || '{}').name
+          )}
+        </div>
         <button
           className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
           onClick={() => {
             localStorage.removeItem('token');
+            localStorage.removeItem('user');
             window.location.href = '/login';
           }}
         >

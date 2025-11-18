@@ -9,6 +9,7 @@ import { InsuredModule } from './insured/insured.module';
 import { PoliciesModule } from './policies/policies.module';
 import { QuotesModule } from './quotes/quotes.module';
 import { RiskModule } from './risk/risk.module';
+import { HealthController } from './health/health.controller';
 
 @Module({
   imports: [
@@ -30,5 +31,6 @@ import { RiskModule } from './risk/risk.module';
     QuotesModule,
     RiskModule,
   ],
+  controllers: [HealthController],
 })
 export class AppModule {}
