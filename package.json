@@ -1,0 +1,28 @@
+{
+  "name": "ai-insurance-governor-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "介護・医療系保険リスク管理SaaSプラットフォーム",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "db:generate": "cd apps/api && pnpm prisma generate",
+    "db:push": "cd apps/api && pnpm prisma db push",
+    "db:seed": "cd apps/api && pnpm prisma db seed",
+    "db:studio": "cd apps/api && pnpm prisma studio"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.3",
+    "typescript": "^5.6.3",
+    "@types/node": "^22.10.1",
+    "prettier": "^3.4.2"
+  },
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}

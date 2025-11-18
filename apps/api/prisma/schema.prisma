@@ -1,0 +1,163 @@
+// Prisma Schema for AI Insurance Governor Platform
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// テナント（保険代理店または自社組織）
+model Tenant {
+  id        String   @id @default(uuid())
+  name      String
+  type      String   // 'agency' | 'corporate'
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users          User[]
+  insuredEntities InsuredEntity[]
+  policies       Policy[]
+  quoteRequests  QuoteRequest[]
+  auditLogs      AuditLog[]
+
+  @@map("tenants")
+}
+
+// ユーザー
+model User {
+  id        String   @id @default(uuid())
+  tenantId  String
+  email     String   @unique
+  password  String
+  name      String
+  role      String   // 'admin' | 'underwriter' | 'sales'
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  quoteRequests QuoteRequest[]
+  auditLogs     AuditLog[]
+
+  @@index([tenantId])
+  @@index([email])
+  @@map("users")
+}
+
+// 被保険者（施設、法人、個人）
+model InsuredEntity {
+  id          String   @id @default(uuid())
+  tenantId    String
+  type        String   // 'facility' | 'corporation' | 'individual'
+  name        String
+  taxId       String?
+  address     String
+  phoneNumber String?
+  email       String?
+  metadata    Json     @default("{}")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant           Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  policies         Policy[]
+  riskAssessments  RiskAssessment[]
+  quoteRequests    QuoteRequest[]
+
+  @@index([tenantId])
+  @@index([type])
+  @@map("insured_entities")
+}
+
+// 保険契約
+model Policy {
+  id              String   @id @default(uuid())
+  tenantId        String
+  insuredEntityId String
+  policyNumber    String   @unique
+  status          String   // 'draft' | 'active' | 'cancelled' | 'expired'
+  productName     String
+  premium         Float
+  coverageJson    Json     @default("{}")
+  startDate       DateTime
+  endDate         DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  insuredEntity InsuredEntity @relation(fields: [insuredEntityId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([insuredEntityId])
+  @@index([status])
+  @@index([endDate])
+  @@map("policies")
+}
+
+// リスク評価
+model RiskAssessment {
+  id              String   @id @default(uuid())
+  insuredEntityId String
+  scenarioType    String   // 'nursing_home_fire' | 'medical_malpractice' | etc.
+  score           Float
+  rank            String   // 'low' | 'medium' | 'high' | 'critical'
+  detailJson      Json     @default("{}")
+  assessedAt      DateTime @default(now())
+  createdAt       DateTime @default(now())
+
+  insuredEntity InsuredEntity @relation(fields: [insuredEntityId], references: [id], onDelete: Cascade)
+
+  @@index([insuredEntityId])
+  @@index([scenarioType])
+  @@index([rank])
+  @@index([assessedAt])
+  @@map("risk_assessments")
+}
+
+// 見積もりリクエスト
+model QuoteRequest {
+  id              String    @id @default(uuid())
+  tenantId        String
+  insuredEntityId String
+  requestedById   String
+  status          String    // 'pending' | 'quoted' | 'accepted' | 'rejected' | 'expired'
+  answersJson     Json      @default("{}")
+  quotedPremium   Float?
+  quotedCoverage  Json?
+  expiresAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  insuredEntity InsuredEntity @relation(fields: [insuredEntityId], references: [id], onDelete: Cascade)
+  requestedBy   User          @relation(fields: [requestedById], references: [id])
+
+  @@index([tenantId])
+  @@index([insuredEntityId])
+  @@index([status])
+  @@map("quote_requests")
+}
+
+// 監査ログ
+model AuditLog {
+  id         String   @id @default(uuid())
+  tenantId   String
+  userId     String?
+  action     String
+  entityType String
+  entityId   String
+  changes    Json     @default("{}")
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
