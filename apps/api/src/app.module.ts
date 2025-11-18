@@ -9,6 +9,8 @@ import { InsuredModule } from './insured/insured.module';
 import { PoliciesModule } from './policies/policies.module';
 import { QuotesModule } from './quotes/quotes.module';
 import { RiskModule } from './risk/risk.module';
+import { PolicyTemplateModule } from './policy-template/policy-template.module';
+import { ClaimsModule } from './claims/claims.module';
 import { HealthController } from './health/health.controller';
 
 @Module({
@@ -30,6 +32,8 @@ import { HealthController } from './health/health.controller';
     PoliciesModule,
     QuotesModule,
     RiskModule,
+    PolicyTemplateModule,
+    ClaimsModule,
   ],
   controllers: [HealthController],
 })

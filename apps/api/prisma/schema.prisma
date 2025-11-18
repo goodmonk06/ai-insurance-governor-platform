@@ -18,11 +18,17 @@ model Tenant {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users          User[]
-  insuredEntities InsuredEntity[]
-  policies       Policy[]
-  quoteRequests  QuoteRequest[]
-  auditLogs      AuditLog[]
+  users            User[]
+  insuredEntities  InsuredEntity[]
+  policies         Policy[]
+  quoteRequests    QuoteRequest[]
+  auditLogs        AuditLog[]
+  policyTemplates  PolicyTemplate[]
+  claims           Claim[]
+  documents        Document[]
+  notifications    Notification[]
+  tags             Tag[]
+  metrics          Metric[]
 
   @@map("tenants")
 }
@@ -39,9 +45,13 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  quoteRequests QuoteRequest[]
-  auditLogs     AuditLog[]
+  tenant           Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  quoteRequests    QuoteRequest[]
+  auditLogs        AuditLog[]
+  policyTemplates  PolicyTemplate[]
+  reviewedClaims   Claim[]
+  uploadedDocuments Document[]
+  notifications    Notification[]
 
   @@index([tenantId])
   @@index([email])
@@ -62,10 +72,12 @@ model InsuredEntity {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  tenant           Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  policies         Policy[]
-  riskAssessments  RiskAssessment[]
-  quoteRequests    QuoteRequest[]
+  tenant              Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  policies            Policy[]
+  riskAssessments     RiskAssessment[]
+  quoteRequests       QuoteRequest[]
+  claims              Claim[]
+  mitigationPlans     RiskMitigationPlan[]
 
   @@index([tenantId])
   @@index([type])
@@ -89,6 +101,7 @@ model Policy {
 
   tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   insuredEntity InsuredEntity @relation(fields: [insuredEntityId], references: [id], onDelete: Cascade)
+  claims        Claim[]
 
   @@index([tenantId])
   @@index([insuredEntityId])
@@ -108,7 +121,8 @@ model RiskAssessment {
   assessedAt      DateTime @default(now())
   createdAt       DateTime @default(now())
 
-  insuredEntity InsuredEntity @relation(fields: [insuredEntityId], references: [id], onDelete: Cascade)
+  insuredEntity   InsuredEntity        @relation(fields: [insuredEntityId], references: [id], onDelete: Cascade)
+  mitigationPlans RiskMitigationPlan[]
 
   @@index([insuredEntityId])
   @@index([scenarioType])
@@ -160,4 +174,203 @@ model AuditLog {
   @@index([entityType, entityId])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+// ポリシーテンプレート（保険商品のひな形）
+model PolicyTemplate {
+  id              String   @id @default(uuid())
+  tenantId        String?
+  name            String
+  description     String?
+  facilityTypes   String[] // 対象施設タイプ
+  coverageConfig  Json     @default("{}") // 補償内容の設定
+  premiumFormula  Json     @default("{}") // 保険料計算式
+  underwritingRules Json   @default("{}") // 引受審査ルール
+  isActive        Boolean  @default(true)
+  isPublic        Boolean  @default(false) // 全テナント共有可能か
+  version         Int      @default(1)
+  createdById     String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tenant    Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdBy User    @relation(fields: [createdById], references: [id])
+
+  @@index([tenantId])
+  @@index([isActive, isPublic])
+  @@map("policy_templates")
+}
+
+// リスクプロファイル（施設タイプ別のベースラインリスク）
+model RiskProfile {
+  id                String   @id @default(uuid())
+  facilityType      String   @unique
+  industrySegment   String
+  baselineScore     Float
+  riskFactors       Json     @default("{}") // リスク要因の重み付け
+  benchmarkData     Json     @default("{}") // 業界ベンチマーク
+  recommendations   String[]
+  lastUpdated       DateTime @default(now())
+  createdAt         DateTime @default(now())
+
+  @@index([industrySegment])
+  @@map("risk_profiles")
+}
+
+// クレーム（保険金請求）
+model Claim {
+  id              String    @id @default(uuid())
+  tenantId        String
+  policyId        String
+  insuredEntityId String
+  claimNumber     String    @unique
+  claimType       String    // 'property_damage' | 'liability' | 'medical_malpractice' | 'business_interruption'
+  status          String    // 'submitted' | 'under_review' | 'approved' | 'denied' | 'paid' | 'closed'
+  incidentDate    DateTime
+  reportedDate    DateTime  @default(now())
+  description     String
+  claimedAmount   Float
+  approvedAmount  Float?
+  paidAmount      Float?
+  denialReason    String?
+  adjusterNotes   Json      @default("[]")
+  reviewedById    String?
+  reviewedAt      DateTime?
+  closedAt        DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  policy        Policy        @relation(fields: [policyId], references: [id])
+  insuredEntity InsuredEntity @relation(fields: [insuredEntityId], references: [id])
+  reviewedBy    User?         @relation(fields: [reviewedById], references: [id])
+  documents     Document[]
+
+  @@index([tenantId])
+  @@index([policyId])
+  @@index([status])
+  @@index([incidentDate])
+  @@map("claims")
+}
+
+// ドキュメント（証券、報告書、証拠資料など）
+model Document {
+  id          String   @id @default(uuid())
+  tenantId    String
+  entityType  String   // 'policy' | 'claim' | 'inspection' | 'compliance' | 'certificate'
+  entityId    String
+  claimId     String?
+  name        String
+  description String?
+  fileType    String   // 'pdf' | 'image' | 'excel' | 'word'
+  fileSize    Int
+  storageKey  String   // S3キーまたはストレージパス
+  storagePath String? // ローカルストレージの場合のパス
+  uploadedById String
+  version     Int      @default(1)
+  tags        String[]
+  metadata    Json     @default("{}")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant     Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  uploadedBy User    @relation(fields: [uploadedById], references: [id])
+  claim      Claim?  @relation(fields: [claimId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([entityType, entityId])
+  @@index([claimId])
+  @@map("documents")
+}
+
+// 通知（メール、SMS、アプリ内通知）
+model Notification {
+  id            String    @id @default(uuid())
+  tenantId      String
+  userId        String?
+  channel       String    // 'email' | 'sms' | 'in_app' | 'webhook'
+  type          String    // 'policy_renewal' | 'claim_update' | 'high_risk_alert' | 'payment_due'
+  recipient     String
+  subject       String?
+  body          String
+  templateId    String?
+  status        String    // 'pending' | 'sent' | 'delivered' | 'failed' | 'bounced'
+  sentAt        DateTime?
+  deliveredAt   DateTime?
+  failureReason String?
+  retryCount    Int       @default(0)
+  metadata      Json      @default("{}")
+  createdAt     DateTime  @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+// リスク軽減計画
+model RiskMitigationPlan {
+  id                String   @id @default(uuid())
+  insuredEntityId   String
+  riskAssessmentId  String
+  title             String
+  description       String
+  priority          String   // 'low' | 'medium' | 'high' | 'critical'
+  status            String   // 'proposed' | 'in_progress' | 'completed' | 'cancelled'
+  recommendations   String[]
+  actionItems       Json     @default("[]")
+  estimatedCost     Float?
+  actualCost        Float?
+  startDate         DateTime?
+  completionDate    DateTime?
+  responsibleParty  String?
+  effectiveness     Float? // 0-100: リスク削減効果の評価
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  insuredEntity  InsuredEntity  @relation(fields: [insuredEntityId], references: [id], onDelete: Cascade)
+  riskAssessment RiskAssessment @relation(fields: [riskAssessmentId], references: [id])
+
+  @@index([insuredEntityId])
+  @@index([status])
+  @@index([priority])
+  @@map("risk_mitigation_plans")
+}
+
+// タグ（施設、リスク、契約などのタグ付け）
+model Tag {
+  id        String   @id @default(uuid())
+  tenantId  String
+  name      String
+  category  String   // 'facility' | 'risk' | 'policy' | 'general'
+  color     String?
+  createdAt DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, name, category])
+  @@index([tenantId])
+  @@map("tags")
+}
+
+// メトリクス（ビジネス指標の記録）
+model Metric {
+  id         String   @id @default(uuid())
+  tenantId   String?
+  name       String
+  value      Float
+  unit       String?
+  labels     Json     @default("{}")
+  recordedAt DateTime @default(now())
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([name, recordedAt])
+  @@map("metrics")
 }

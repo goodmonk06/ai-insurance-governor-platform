@@ -40,3 +40,77 @@ export enum ScenarioType {
   INFECTION_OUTBREAK = 'infection_outbreak',
   NATURAL_DISASTER = 'natural_disaster',
 }
+
+export enum ClaimType {
+  PROPERTY_DAMAGE = 'property_damage',
+  LIABILITY = 'liability',
+  MEDICAL_MALPRACTICE = 'medical_malpractice',
+  BUSINESS_INTERRUPTION = 'business_interruption',
+}
+
+export enum ClaimStatus {
+  SUBMITTED = 'submitted',
+  UNDER_REVIEW = 'under_review',
+  APPROVED = 'approved',
+  DENIED = 'denied',
+  PAID = 'paid',
+  CLOSED = 'closed',
+}
+
+export enum DocumentType {
+  PDF = 'pdf',
+  IMAGE = 'image',
+  EXCEL = 'excel',
+  WORD = 'word',
+}
+
+export enum DocumentEntityType {
+  POLICY = 'policy',
+  CLAIM = 'claim',
+  INSPECTION = 'inspection',
+  COMPLIANCE = 'compliance',
+  CERTIFICATE = 'certificate',
+}
+
+export enum NotificationChannel {
+  EMAIL = 'email',
+  SMS = 'sms',
+  IN_APP = 'in_app',
+  WEBHOOK = 'webhook',
+}
+
+export enum NotificationType {
+  POLICY_RENEWAL = 'policy_renewal',
+  CLAIM_UPDATE = 'claim_update',
+  HIGH_RISK_ALERT = 'high_risk_alert',
+  PAYMENT_DUE = 'payment_due',
+}
+
+export enum NotificationStatus {
+  PENDING = 'pending',
+  SENT = 'sent',
+  DELIVERED = 'delivered',
+  FAILED = 'failed',
+  BOUNCED = 'bounced',
+}
+
+export enum MitigationPriority {
+  LOW = 'low',
+  MEDIUM = 'medium',
+  HIGH = 'high',
+  CRITICAL = 'critical',
+}
+
+export enum MitigationStatus {
+  PROPOSED = 'proposed',
+  IN_PROGRESS = 'in_progress',
+  COMPLETED = 'completed',
+  CANCELLED = 'cancelled',
+}
+
+export enum TagCategory {
+  FACILITY = 'facility',
+  RISK = 'risk',
+  POLICY = 'policy',
+  GENERAL = 'general',
+}

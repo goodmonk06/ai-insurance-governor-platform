@@ -1,8 +1,5 @@
-// Types
 export * from './types/enums';
 export * from './types/entities';
-
-// DTOs
 export * from './dtos/auth.dto';
 export * from './dtos/insured.dto';
 export * from './dtos/policy.dto';
@@ -13,19 +10,12 @@ export * from './dtos/claim.dto';
 export * from './dtos/document.dto';
 export * from './dtos/notification.dto';
 export * from './dtos/mitigation-plan.dto';
-
-// Clients
 export * from './clients/risk-simulator.client';
-
-// Adapters
 export * from './adapters/notification-provider.interface';
 export * from './adapters/storage-provider.interface';
 export * from './adapters/metrics-provider.interface';
 export * from './adapters/payment-provider.interface';
-
-// Events
 export * from './events/domain-events';
 export * from './events/in-memory-event-bus';
-
-// Utilities
 export * from './lib/logger';
+//# sourceMappingURL=index.d.ts.map
